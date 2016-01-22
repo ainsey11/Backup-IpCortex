@@ -50,4 +50,5 @@ Function Backup-Cortex{
             Get-ChildItem -Path $BackupLocation -Recurse -Force | Where-Object { !$_.PSIsContainer -and $_.CreationTime -lt $retention } | Remove-Item -Force
            }
 
-           Backup-Cortex 
+           # Example of use:
+           Backup-Cortex -CortexAddress "<ip/hostname>" -username admin -password <password> -EmailAddress "robert@ainsey11.com" -mailserver "mail.ainsey11.com" -retention 15 
