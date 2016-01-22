@@ -11,25 +11,26 @@ Function Backup-Cortex{
             [string] $password
            )
      #static variables, not much need to tweak these
-            $date = Get-Date -Format dd-MM-yy
-            $EVLogSource = "Ainsey11-BackupCortex"
-            $LoginEVID = "1000"
-            $BackupEVID = "1001"
-            $EVMessage = "Cortex Backup has been initiated, logging in"
-            $EVMessageCompleted = "Cortex Backup has been initiated, logging in"
-            $BackupLocation = "C:\Backups"
-            $tempfile = "$BackupLocation\tmp.txt"
-            $CortexLoginURL = "http://$CortexAddress/login.whtm?sessionUser=$username&sessionPass=$password"
-            $CortexDownloadURL = "http://$CortexAddress/admin/backup.whtm/update/backup.tar.gz"
+            $date = Get-Date -Format dd-MM-yy # used for the name of the file
+            $EVLogSource = "Ainsey11-BackupCortex" #ev handling
+            $LoginEVID = "1000" # ev handling
+            $BackupEVID = "1001"# ev handling
+            $EVMessage = "Cortex Backup has been initiated, logging in" # ev handling
+            $EVMessageCompleted = "Cortex Backup has been initiated, logging in" # ev handling
+            $BackupLocation = "C:\Backups" # root backup location
+            $tempfile = "$BackupLocation\tmp.txt" #tmp file
+            $CortexLoginURL = "http://$CortexAddress/login.whtm?sessionUser=$username&sessionPass=$password" #making the url sting
+            $CortexDownloadURL = "http://$CortexAddress/admin/backup.whtm/update/backup.tar.gz" #making the url sting for downloading the gz
             $Wgetlocation = "C:\Program Files (x86)\GnuWin32\bin"
-            New-EventLog -LogName Application -Source $EVLogSource -ErrorAction SilentlyContinue
+
+            New-EventLog -LogName Application -Source $EVLogSource -ErrorAction SilentlyContinue #making EventLog source
 
             cd $Wgetlocation
-            .\wget.exe -O $tempfile --max-redirect=0 --save-cookies=./cookies.txt --keep-session-cookies --tries=1 $CortexLoginURL
-            Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $LoginEVID -Message $EVMessage -ErrorAction SilentlyContinue
+            .\wget.exe -O $tempfile --max-redirect=0 --save-cookies=./cookies.txt --keep-session-cookies --tries=1 $CortexLoginURL #Logging in via wget
+            Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $LoginEVID -Message $EVMessage -ErrorAction SilentlyContinue #ev handling
             
-            .\wget.exe -O $Backuplocation\$date.tar.gz --max-redirect=0 --load-cookies=./cookies.txt --tries=1 $CortexDownloadURL
-            Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue
+            .\wget.exe -O $Backuplocation\$date.tar.gz --max-redirect=0 --load-cookies=./cookies.txt --tries=1 $CortexDownloadURL #Logging in via wget
+            Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue #ev handling
            }
 
-           Backup-Cortex -CortexAddress "<ip/hostname>" -username admin -password <password>
+           Backup-Cortex -CortexAddress "<ip/hostname>" -username admin -password <password> #the main line that kicks it all off
