@@ -33,6 +33,7 @@ For some use cases, you may not want to store the backups on the C: drive. In th
 #### Change 1
 -  Open up Backup-Cortex.ps1
 -  Change Line 20 from C:\Backups to your location, DO NOT LEAVE A TRAILING BACKSLASH 
+
 #### Change 2
 - Before importing the XML for the scheduled task for the automation side right click the Backup-Cortex.ps1 file and select edit
 - On Line 49 change the path after the -File to the new location of the PS1 file.
