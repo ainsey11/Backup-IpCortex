@@ -8,9 +8,12 @@ Function Backup-Cortex{
     param (
             [string] $CortexAddress, 
             [string] $username,
-            [string] $password
+            [string] $password,
+            [string] $EmailAddress = $null,
+            [string] $mailserver,
+            [string] $retention = 30 
            )
-     #static variables, not much need to tweak these
+            #static variables, not much need to tweak these
             $date = Get-Date -Format dd-MM-yy # used for the name of the file
             $EVLogSource = "Ainsey11-BackupCortex" #ev handling
             $LoginEVID = "1000" # ev handling
@@ -27,16 +30,24 @@ Function Backup-Cortex{
             New-EventLog -LogName Application -Source $EVLogSource -ErrorAction SilentlyContinue #making EventLog source
 
             cd $Wgetlocation
+
+            #Do the downloads now
             .\wget.exe -O $tempfile --max-redirect=0 --save-cookies=./cookies.txt --keep-session-cookies --tries=1 $CortexLoginURL #Logging in via wget
             Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $LoginEVID -Message $EVMessage -ErrorAction SilentlyContinue #ev handling
             
+            #More downloads
             .\wget.exe -O $Backuplocation\$date.tar.gz --max-redirect=0 --load-cookies=./cookies.txt --tries=1 $CortexDownloadURL #Logging in via wget
             Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue #ev handling
 
+            #More downloads 
              .\wget.exe -O $Backuplocation\"$date-IVR.tar.gz" --max-redirect=0 --load-cookies=./cookies.txt --tries=1 $CortexIVRDownloadURL #Logging in via wget
             Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue #ev handling
 
+            #Sends e-mail alert, will send to $null if not set. 
+            Send-MailMessage -To $EmailAddress -From "CortexBackups@$cortexAddress" -Subject "Backup has been run" -SmtpServer $mailserver
 
+            #Retention Code now
+            Get-ChildItem -Path $BackupLocation -Recurse -Force | Where-Object { !$_.PSIsContainer -and $_.CreationTime -lt $retention } | Remove-Item -Force
            }
 
-           Backup-Cortex -CortexAddress "<ip/hostname>" -username admin -password <password> #the main line that kicks it all off
+           Backup-Cortex 
