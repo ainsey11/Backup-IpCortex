@@ -21,6 +21,7 @@ Function Backup-Cortex{
             $tempfile = "$BackupLocation\tmp.txt" #tmp file
             $CortexLoginURL = "http://$CortexAddress/login.whtm?sessionUser=$username&sessionPass=$password" #making the url sting
             $CortexDownloadURL = "http://$CortexAddress/admin/backup.whtm/update/backup.tar.gz" #making the url sting for downloading the gz
+            $CortexIVRDownloadURL = "http://$CortexAddress/admin/backup.whtm/update/ivr.tar.gz" #making the url sting for downloading the gz
             $Wgetlocation = "C:\Program Files (x86)\GnuWin32\bin"
 
             New-EventLog -LogName Application -Source $EVLogSource -ErrorAction SilentlyContinue #making EventLog source
@@ -31,6 +32,11 @@ Function Backup-Cortex{
             
             .\wget.exe -O $Backuplocation\$date.tar.gz --max-redirect=0 --load-cookies=./cookies.txt --tries=1 $CortexDownloadURL #Logging in via wget
             Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue #ev handling
+
+             .\wget.exe -O $Backuplocation\"$date-IVR.tar.gz" --max-redirect=0 --load-cookies=./cookies.txt --tries=1 $CortexIVRDownloadURL #Logging in via wget
+            Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue #ev handling
+
+
            }
 
            Backup-Cortex -CortexAddress "<ip/hostname>" -username admin -password <password> #the main line that kicks it all off
