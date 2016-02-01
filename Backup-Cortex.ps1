@@ -14,7 +14,7 @@ Function Backup-Cortex{
             [string] $retention = 30 
            )
             #static variables, not much need to tweak these
-            $date = Get-Date -Format dd-MM-yy # used for the name of the file
+            $date = Get-Date -Format "dd-MM-yy HHMMss" # used for the name of the file
             $EVLogSource = "Ainsey11-BackupCortex" #ev handling
             $LoginEVID = "1000" # ev handling
             $BackupEVID = "1001"# ev handling
@@ -25,6 +25,7 @@ Function Backup-Cortex{
             $CortexLoginURL = "http://$CortexAddress/login.whtm?sessionUser=$username&sessionPass=$password" #making the url sting
             $CortexDownloadURL = "http://$CortexAddress/admin/backup.whtm/update/backup.tar.gz" #making the url sting for downloading the gz
             $CortexIVRDownloadURL = "http://$CortexAddress/admin/backup.whtm/update/ivr.tar.gz" #making the url sting for downloading the gz
+            $CortexCallRecordingURL = "http://$CortexAddress/link/monitor.whtm" #url that contains the call recording area
             $Wgetlocation = "C:\Program Files (x86)\GnuWin32\bin"
 
             New-EventLog -LogName Application -Source $EVLogSource -ErrorAction SilentlyContinue #making EventLog source
@@ -32,7 +33,7 @@ Function Backup-Cortex{
             cd $Wgetlocation
 
             #Do the downloads now
-            .\wget.exe -O $tempfile --max-redirect=1 --save-cookies=./cookies.txt --keep-session-cookies --tries=1 $CortexLoginURL #Logging in via wget
+            .\wget.exe -O $tempfile --max-redirect=1 --save-cookies=./cookies.txt --tries=1 $CortexLoginURL #Logging in via wget
             Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $LoginEVID -Message $EVMessage -ErrorAction SilentlyContinue #ev handling
             
             #More downloads
@@ -42,6 +43,12 @@ Function Backup-Cortex{
             #More downloads 
              .\wget.exe -O $Backuplocation\"$date-IVR.tar.gz" --max-redirect=1 --load-cookies=./cookies.txt --tries=1 $CortexIVRDownloadURL #Logging in via wget
             Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue #ev handling
+            
+            .\wget.exe -O $tempfile --max-redirect=11 --load-cookies=./cookies.txt --tries=1 $CortexCallRecordingURL #pull the call recording page
+			 $CortexCallRecordFile = (gc $tempfile | % { if($_ -match "_default.cgi/recorded.tar.gz") {$_.substring(13,$_.length-13-37)}}) #scan the file looking for the url that changes every time
+			 $CortexCallRecordFileUrl = "http://$CortexAddress$CortexCallRecordFile" #concat the strings together
+			.\wget.exe -O $Backuplocation\"$date-Recordings.tar.gz" --max-redirect=10 --load-cookies=./cookies.txt --tries=1 $CortexCallRecordFileUrl #download the call recordings
+			Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue #ev handling
 
             #Sends e-mail alert, will send to $null if not set. 
             Send-MailMessage -To $EmailAddress -From "CortexBackups@$cortexAddress" -Subject "Backup has been run" -SmtpServer $mailserver
@@ -51,4 +58,4 @@ Function Backup-Cortex{
            }
 
            # Example of use:
-           Backup-Cortex -CortexAddress "<ip/hostname>" -username admin -password <password> -EmailAddress "robert@ainsey11.com" -mailserver "mail.ainsey11.com" -retention 15 
+           Backup-Cortex -CortexAddress "ip/hostname" -username "admin" -password "password" -EmailAddress "robert@ainsey11.com" -mailserver "mail.ainsey11.com" -retention 15 
