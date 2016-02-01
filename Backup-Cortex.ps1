@@ -32,15 +32,15 @@ Function Backup-Cortex{
             cd $Wgetlocation
 
             #Do the downloads now
-            .\wget.exe -O $tempfile --max-redirect=0 --save-cookies=./cookies.txt --keep-session-cookies --tries=1 $CortexLoginURL #Logging in via wget
+            .\wget.exe -O $tempfile --max-redirect=10 --save-cookies=./cookies.txt --keep-session-cookies --tries=1 $CortexLoginURL #Logging in via wget
             Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $LoginEVID -Message $EVMessage -ErrorAction SilentlyContinue #ev handling
             
             #More downloads
-            .\wget.exe -O $Backuplocation\$date.tar.gz --max-redirect=0 --load-cookies=./cookies.txt --tries=1 $CortexDownloadURL #Logging in via wget
+            .\wget.exe -O $Backuplocation\$date.tar.gz --max-redirect=10 --load-cookies=./cookies.txt --tries=1 $CortexDownloadURL #Logging in via wget
             Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue #ev handling
 
             #More downloads 
-             .\wget.exe -O $Backuplocation\"$date-IVR.tar.gz" --max-redirect=0 --load-cookies=./cookies.txt --tries=1 $CortexIVRDownloadURL #Logging in via wget
+             .\wget.exe -O $Backuplocation\"$date-IVR.tar.gz" --max-redirect=10 --load-cookies=./cookies.txt --tries=1 $CortexIVRDownloadURL #Logging in via wget
             Write-EventLog -LogName Application -Source $EVLogSource -EntryType Information -EventId $backupEVID -Message $EVMessageCompleted -ErrorAction SilentlyContinue #ev handling
 
             #Sends e-mail alert, will send to $null if not set. 
